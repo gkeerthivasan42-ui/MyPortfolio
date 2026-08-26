@@ -1,49 +1,139 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* ===========================
-       SMOOTH SCROLL
-    =========================== */
+    /* =========================================================
+       01. MOBILE MENU
+    ========================================================= */
 
-    document.querySelectorAll("nav a").forEach(link => {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute("href"));
-            if (target) {
-                target.scrollIntoView({ behavior: "smooth" });
+    const menuToggle = document.getElementById("menuToggle");
+    const navMenu = document.getElementById("navMenu");
+
+    if (menuToggle && navMenu) {
+
+        menuToggle.addEventListener("click", function () {
+
+            navMenu.classList.toggle("show");
+
+            if (navMenu.classList.contains("show")) {
+                menuToggle.textContent = "✕";
+                menuToggle.setAttribute("aria-expanded", "true");
+            } else {
+                menuToggle.textContent = "☰";
+                menuToggle.setAttribute("aria-expanded", "false");
             }
+
         });
-    });
 
-    /* ===========================
-       ACTIVE NAVBAR
-    =========================== */
+    }
 
-    const sections = document.querySelectorAll("section");
+
+    /* =========================================================
+       02. SMOOTH SCROLL
+    ========================================================= */
+
     const navLinks = document.querySelectorAll("nav a");
 
-    window.addEventListener("scroll", () => {
-        let current = "";
+    navLinks.forEach(function (link) {
 
-        sections.forEach(section => {
-            const top = section.offsetTop - 120;
-            const height = section.offsetHeight;
+        link.addEventListener("click", function (e) {
 
-            if (pageYOffset >= top && pageYOffset < top + height) {
-                current = section.id;
+            const targetId = this.getAttribute("href");
+
+            if (!targetId || !targetId.startsWith("#")) {
+                return;
             }
+
+            const target = document.querySelector(targetId);
+
+            if (target) {
+
+                e.preventDefault();
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+
+            /* Close mobile menu after clicking */
+
+            if (navMenu && menuToggle) {
+
+                navMenu.classList.remove("show");
+
+                menuToggle.textContent = "☰";
+
+                menuToggle.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+
+            }
+
         });
 
-        navLinks.forEach(link => {
-            link.classList.remove("active");
-            if (link.getAttribute("href") === "#" + current) {
-                link.classList.add("active");
-            }
-        });
     });
 
-    /* ===========================
-       TYPING EFFECT
-    =========================== */
+
+    /* =========================================================
+       03. ACTIVE NAVBAR
+    ========================================================= */
+
+    const sections = document.querySelectorAll("section");
+
+    function updateActiveNav() {
+
+        let current = "";
+
+        const scrollPosition = window.scrollY + 140;
+
+        sections.forEach(function (section) {
+
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+
+            if (
+                scrollPosition >= sectionTop &&
+                scrollPosition < sectionTop + sectionHeight
+            ) {
+
+                current = section.id;
+
+            }
+
+        });
+
+
+        navLinks.forEach(function (link) {
+
+            link.classList.remove("active");
+
+            if (
+                link.getAttribute("href") === "#" + current
+            ) {
+
+                link.classList.add("active");
+
+            }
+
+        });
+
+    }
+
+
+    window.addEventListener(
+        "scroll",
+        updateActiveNav,
+        { passive: true }
+    );
+
+    updateActiveNav();
+
+
+    /* =========================================================
+       04. TYPING EFFECT
+    ========================================================= */
 
     const typing = document.querySelector(".typed");
 
@@ -58,121 +148,387 @@ document.addEventListener("DOMContentLoaded", function () {
             "Full Stack Developer"
         ];
 
-        let word = 0;
-        let char = 0;
+        let wordIndex = 0;
+        let charIndex = 0;
         let deleting = false;
 
-        function type() {
-            let current = words[word];
+
+        function typeText() {
+
+            const currentWord = words[wordIndex];
+
+
+            /* Typing */
 
             if (!deleting) {
-                typing.textContent = current.substring(0, char++);
 
-                if (char > current.length) {
+                typing.textContent =
+                    currentWord.substring(
+                        0,
+                        charIndex
+                    );
+
+                charIndex++;
+
+
+                /* Word completed */
+
+                if (charIndex > currentWord.length) {
+
                     deleting = true;
-                    setTimeout(type, 1200);
+
+                    setTimeout(
+                        typeText,
+                        1200
+                    );
+
                     return;
                 }
-            } else {
-                typing.textContent = current.substring(0, char--);
 
-                if (char < 0) {
-                    deleting = false;
-                    word++;
-                    if (word >= words.length) word = 0;
-                }
             }
 
-            setTimeout(type, deleting ? 50 : 120);
+
+            /* Deleting */
+
+            else {
+
+                typing.textContent =
+                    currentWord.substring(
+                        0,
+                        charIndex
+                    );
+
+                charIndex--;
+
+
+                /* Word deleted */
+
+                if (charIndex < 0) {
+
+                    deleting = false;
+
+                    wordIndex++;
+
+                    if (
+                        wordIndex >= words.length
+                    ) {
+
+                        wordIndex = 0;
+
+                    }
+
+                }
+
+            }
+
+
+            setTimeout(
+                typeText,
+                deleting ? 50 : 120
+            );
+
         }
 
-        type();
+
+        typeText();
+
     }
 
-    /* ===========================
-       CERTIFICATE LIGHTBOX
-    =========================== */
 
-    const images = document.querySelectorAll(".certificate-gallery img");
+    /* =========================================================
+       05. CERTIFICATE LIGHTBOX
+    ========================================================= */
 
-    const lightbox = document.createElement("div");
-    lightbox.id = "lightbox";
-    lightbox.innerHTML = `
-        <span id="closeLightbox">&times;</span>
-        <img id="lightboxImage">
-    `;
-    document.body.appendChild(lightbox);
+    const certificateImages =
+        document.querySelectorAll(
+            ".certificate-gallery img"
+        );
 
-    const lightboxImage = document.getElementById("lightboxImage");
 
-    images.forEach(img => {
-        img.onclick = function () {
-            lightbox.style.display = "flex";
-            lightboxImage.src = this.src;
-        };
-    });
+    if (certificateImages.length > 0) {
 
-    lightbox.onclick = function (e) {
-        if (e.target.id === "lightbox" || e.target.id === "closeLightbox") {
+        const lightbox =
+            document.createElement("div");
+
+        lightbox.id = "lightbox";
+
+        lightbox.innerHTML = `
+            <span id="closeLightbox"
+                  aria-label="Close certificate">
+                &times;
+            </span>
+
+            <img
+                id="lightboxImage"
+                alt="Certificate preview"
+            >
+        `;
+
+        document.body.appendChild(lightbox);
+
+
+        const lightboxImage =
+            document.getElementById(
+                "lightboxImage"
+            );
+
+        const closeLightbox =
+            document.getElementById(
+                "closeLightbox"
+            );
+
+
+        /* Open certificate */
+
+        certificateImages.forEach(function (image) {
+
+            image.addEventListener(
+                "click",
+                function () {
+
+                    lightbox.style.display = "flex";
+
+                    lightboxImage.src =
+                        this.src;
+
+                    lightboxImage.alt =
+                        this.alt ||
+                        "Certificate preview";
+
+                    document.body.style.overflow =
+                        "hidden";
+
+                }
+            );
+
+        });
+
+
+        /* Close certificate */
+
+        function closeCertificate() {
+
             lightbox.style.display = "none";
+
+            document.body.style.overflow = "";
+
         }
-    };
 
-    /* ===========================
-       BACK TO TOP
-    =========================== */
 
-    const topBtn = document.createElement("button");
-    topBtn.id = "topButton";
-    topBtn.innerHTML = "↑";
-    topBtn.setAttribute("aria-label", "Back to top");
-    document.body.appendChild(topBtn);
+        if (closeLightbox) {
 
-    window.addEventListener("scroll", () => {
-        topBtn.style.display = window.scrollY > 300 ? "block" : "none";
-    });
+            closeLightbox.addEventListener(
+                "click",
+                closeCertificate
+            );
 
-    topBtn.onclick = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+        }
 
-    /* ===========================
-       PAGE LOADER
-    =========================== */
 
-    window.addEventListener("load", () => {
-        const loader = document.getElementById("loader");
-        setTimeout(() => {
-            loader.style.opacity = "0";
-            setTimeout(() => {
-                loader.style.display = "none";
-            }, 500);
-        }, 400);
-    });
+        lightbox.addEventListener(
+            "click",
+            function (e) {
 
-    /* ===========================
-       JOB BUTTONS
-    =========================== */
+                if (e.target === lightbox) {
 
-    const jobButtons = document.querySelectorAll(".job-btn");
-    const subject = document.getElementById("subject");
-    const message = document.getElementById("message");
-    const contact = document.getElementById("contact");
-    const selectedJob = document.getElementById("selectedJob");
+                    closeCertificate();
 
-    jobButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            jobButtons.forEach(btn => btn.classList.remove("selected"));
-            this.classList.add("selected");
+                }
 
-            const job = this.dataset.job;
+            }
+        );
 
-            selectedJob.style.display = "block";
-            selectedJob.innerHTML = "Selected Position : <b>" + job + "</b>";
 
-            subject.value = "Application for " + job;
+        /* Close using ESC key */
 
-            message.value =
+        document.addEventListener(
+            "keydown",
+            function (e) {
+
+                if (
+                    e.key === "Escape" &&
+                    lightbox.style.display === "flex"
+                ) {
+
+                    closeCertificate();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       06. BACK TO TOP
+    ========================================================= */
+
+    const topButton =
+        document.createElement("button");
+
+    topButton.id = "topButton";
+
+    topButton.innerHTML = "↑";
+
+    topButton.setAttribute(
+        "aria-label",
+        "Back to top"
+    );
+
+    document.body.appendChild(topButton);
+
+
+    function updateTopButton() {
+
+        if (window.scrollY > 300) {
+
+            topButton.style.display = "block";
+
+        } else {
+
+            topButton.style.display = "none";
+
+        }
+
+    }
+
+
+    window.addEventListener(
+        "scroll",
+        updateTopButton,
+        { passive: true }
+    );
+
+
+    topButton.addEventListener(
+        "click",
+        function () {
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+        }
+    );
+
+
+    updateTopButton();
+
+
+    /* =========================================================
+       07. PAGE LOADER
+    ========================================================= */
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            const loader =
+                document.getElementById("loader");
+
+            if (!loader) {
+                return;
+            }
+
+
+            setTimeout(function () {
+
+                loader.style.opacity = "0";
+
+
+                setTimeout(function () {
+
+                    loader.style.display = "none";
+
+                }, 500);
+
+            }, 400);
+
+        }
+    );
+
+
+    /* =========================================================
+       08. JOB BUTTONS
+    ========================================================= */
+
+    const jobButtons =
+        document.querySelectorAll(".job-btn");
+
+    const subject =
+        document.getElementById("subject");
+
+    const message =
+        document.getElementById("message");
+
+    const contact =
+        document.getElementById("contact");
+
+    const selectedJob =
+        document.getElementById("selectedJob");
+
+
+    jobButtons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                /* Remove previous selection */
+
+                jobButtons.forEach(
+                    function (btn) {
+
+                        btn.classList.remove(
+                            "selected"
+                        );
+
+                    }
+                );
+
+
+                /* Select clicked job */
+
+                this.classList.add("selected");
+
+
+                const job =
+                    this.dataset.job;
+
+
+                /* Show selected position */
+
+                if (selectedJob) {
+
+                    selectedJob.style.display =
+                        "block";
+
+                    selectedJob.innerHTML =
+                        "Selected Position : <b>" +
+                        job +
+                        "</b>";
+
+                }
+
+
+                /* Set subject */
+
+                if (subject) {
+
+                    subject.value =
+                        "Application for " +
+                        job;
+
+                }
+
+
+                /* Set message */
+
+                if (message) {
+
+                    message.value =
 `Hi Keerthivasan,
 
 This is the Hiring Team from ________. We recently visited your portfolio and were impressed with your profile.
@@ -188,65 +544,234 @@ Hiring Team
 ___________
 `;
 
-            contact.scrollIntoView({ behavior: "smooth" });
-            contact.classList.add("highlight-contact");
+                }
 
-            setTimeout(() => {
-                contact.classList.remove("highlight-contact");
-            }, 1500);
-        });
-    });
 
-    /* ===========================
-       EMAILJS
-    =========================== */
+                /* Scroll to contact */
 
-    const form = document.getElementById("contactForm");
+                if (contact) {
 
-    form.addEventListener("submit", function (e) {
-        e.preventDefault();
+                    contact.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
 
-        emailjs.send(
-            "service_5w13mka",
-            "template_lc9rq3o",
-            {
-                name: document.getElementById("name").value,
-                email: document.getElementById("email").value,
-                phone: document.getElementById("phone").value,
-                subject: subject.value,
-                message: message.value
+
+                    contact.classList.add(
+                        "highlight-contact"
+                    );
+
+
+                    setTimeout(
+                        function () {
+
+                            contact.classList.remove(
+                                "highlight-contact"
+                            );
+
+                        },
+                        1500
+                    );
+
+                }
+
             }
-        )
-        .then(() => {
-            alert("Email Sent Successfully.");
-            form.reset();
-            selectedJob.style.display = "none";
-        })
-        .catch(() => {
-            alert("Unable to Send Email.");
-        });
-    });
-
-    /* ===========================
-       WHATSAPP
-    =========================== */
-
-    document.getElementById("whatsappBtn").addEventListener("click", function () {
-        const text =
-`Name : ${document.getElementById("name").value}
-
-Email : ${document.getElementById("email").value}
-
-Phone : ${document.getElementById("phone").value}
-
-Subject : ${subject.value}
-
-${message.value}`;
-
-        window.open(
-            "https://wa.me/916384185142?text=" + encodeURIComponent(text),
-            "_blank"
         );
+
     });
+
+
+    /* =========================================================
+       09. EMAILJS CONTACT FORM
+    ========================================================= */
+
+    const form =
+        document.getElementById("contactForm");
+
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            function (e) {
+
+                e.preventDefault();
+
+
+                /* Check EmailJS */
+
+                if (
+                    typeof emailjs ===
+                    "undefined"
+                ) {
+
+                    alert(
+                        "Email service is not available."
+                    );
+
+                    return;
+
+                }
+
+
+                const name =
+                    document.getElementById(
+                        "name"
+                    )?.value || "";
+
+
+                const email =
+                    document.getElementById(
+                        "email"
+                    )?.value || "";
+
+
+                const phone =
+                    document.getElementById(
+                        "phone"
+                    )?.value || "";
+
+
+                const subjectValue =
+                    subject?.value || "";
+
+
+                const messageValue =
+                    message?.value || "";
+
+
+                emailjs.send(
+
+                    "service_5w13mka",
+
+                    "template_lc9rq3o",
+
+                    {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        subject: subjectValue,
+                        message: messageValue
+                    }
+
+                )
+
+                .then(function () {
+
+                    alert(
+                        "Email Sent Successfully."
+                    );
+
+
+                    form.reset();
+
+
+                    if (selectedJob) {
+
+                        selectedJob.style.display =
+                            "none";
+
+                    }
+
+
+                    jobButtons.forEach(
+                        function (btn) {
+
+                            btn.classList.remove(
+                                "selected"
+                            );
+
+                        }
+                    );
+
+                })
+
+                .catch(function (error) {
+
+                    console.error(
+                        "EmailJS Error:",
+                        error
+                    );
+
+                    alert(
+                        "Unable to Send Email."
+                    );
+
+                });
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       10. WHATSAPP
+    ========================================================= */
+
+    const whatsappBtn =
+        document.getElementById(
+            "whatsappBtn"
+        );
+
+
+    if (whatsappBtn) {
+
+        whatsappBtn.addEventListener(
+            "click",
+            function () {
+
+                const name =
+                    document.getElementById(
+                        "name"
+                    )?.value || "";
+
+
+                const email =
+                    document.getElementById(
+                        "email"
+                    )?.value || "";
+
+
+                const phone =
+                    document.getElementById(
+                        "phone"
+                    )?.value || "";
+
+
+                const subjectValue =
+                    subject?.value || "";
+
+
+                const messageValue =
+                    message?.value || "";
+
+
+                const text =
+`Name : ${name}
+
+Email : ${email}
+
+Phone : ${phone}
+
+Subject : ${subjectValue}
+
+${messageValue}`;
+
+
+                const whatsappURL =
+                    "https://wa.me/916384185142?text=" +
+                    encodeURIComponent(text);
+
+
+                window.open(
+                    whatsappURL,
+                    "_blank"
+                );
+
+            }
+        );
+
+    }
 
 });
