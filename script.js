@@ -529,7 +529,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (message) {
 
                     message.value =
-`Hi Keerthivasan,
+`Hi Keerthivasan G,
 
 This is the Hiring Team from ________. We recently visited your portfolio and were impressed with your profile.
 
